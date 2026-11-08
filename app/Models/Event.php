@@ -11,6 +11,7 @@ class Event extends Model
         'user_id',
         'title',
         'event_date',
+        'end_date', // <-- Ditambahkan di sini
         'start_time',
         'end_time',
         'status',

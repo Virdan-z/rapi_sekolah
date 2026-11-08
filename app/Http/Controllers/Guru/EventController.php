@@ -68,6 +68,11 @@ class EventController extends Controller
                 'date',
                 'after_or_equal:' . $today,
             ],
+            'end_date' => [
+                'nullable',
+                'date',
+                'after_or_equal:event_date',
+            ],
             'session' => 'required|in:1,2,3',
             'description' => 'nullable|string',
         ]);
@@ -102,6 +107,7 @@ class EventController extends Controller
             'user_id' => auth()->id(),
             'title' => $validated['title'],
             'event_date' => $validated['event_date'],
+            'end_date' => $validated['end_date'] ?? null,
             'start_time' => $startTime,
             'end_time' => $endTime,
             'description' => $validated['description'] ?? null,
@@ -109,20 +115,20 @@ class EventController extends Controller
         ]);
 
         // Ambil data ruangan, PIC, dan Guru
-        $event->load(['room.pic', 'user']);
+        $event->load(['room.pics', 'user']);
 
         $room = $event->room;
-        $pic = $room?->pic;
+        // Karena relasi room ke pics menggunakan Many-to-Many, kita ambil PIC pertama atau foreach nomornya
+        $pics = $room?->pics;
         $guru = $event->user;
 
         // Jika PIC atau nomor telepon belum tersedia
-        if (!$pic || empty($pic->phone)) {
+        if (!$pics || $pics->isEmpty() || $pics->every(fn($p) => empty($p->phone))) {
             Log::warning(
                 'Notifikasi WhatsApp ke PIC tidak dikirim karena PIC atau nomor telepon belum tersedia.',
                 [
                     'event_id' => $event->id,
                     'room_id' => $event->room_id,
-                    'pic_id' => $pic?->id,
                 ]
             );
 
@@ -136,8 +142,12 @@ class EventController extends Controller
         }
 
         // Susun pesan WhatsApp
-        $tanggal = Carbon::parse($event->event_date)
-            ->format('d-m-Y');
+        $tanggalMulai = Carbon::parse($event->event_date)->format('d-m-Y');
+        $tanggalSelesai = $event->end_date ? Carbon::parse($event->end_date)->format('d-m-Y') : null;
+        
+        $infoTanggal = $tanggalSelesai && $tanggalSelesai !== $tanggalMulai 
+            ? "{$tanggalMulai} s/d {$tanggalSelesai}" 
+            : $tanggalMulai;
 
         $jamMulai = substr((string) $event->start_time, 0, 5);
         $jamSelesai = substr((string) $event->end_time, 0, 5);
@@ -145,47 +155,50 @@ class EventController extends Controller
         $lokasi = $room->location ?? '-';
         $namaGuru = $guru?->name ?? 'Guru';
 
-        $message =
-            "Halo {$pic->name},\n\n" .
-            "Ada pengajuan agenda baru di RAPI-Sekolah.\n\n" .
-            "Judul Agenda: {$event->title}\n" .
-            "Pengaju: {$namaGuru}\n" .
-            "Ruangan: {$room->name}\n" .
-            "Lokasi: {$lokasi}\n" .
-            "Tanggal: {$tanggal}\n" .
-            "Waktu: {$jamMulai} - {$jamSelesai}\n" .
-            "Status: Diajukan\n\n" .
-            "Silakan login ke RAPI-Sekolah untuk memeriksa dan memproses pengajuan agenda ini.";
+        $waSent = false;
+        $whatsApp = app(WhatsAppService::class);
 
-        // Kirim WhatsApp
-        try {
-            $whatsApp = app(WhatsAppService::class);
+        // Kirim ke semua PIC yang bertugas di ruangan tersebut
+        foreach ($pics as $pic) {
+            if (empty($pic->phone)) continue;
 
-            $waSent = $whatsApp->send(
-                $pic->phone,
-                $message
-            );
+            $message =
+                "Halo {$pic->name},\n\n" .
+                "Ada pengajuan agenda baru di RAPI-Sekolah.\n\n" .
+                "Judul Agenda: {$event->title}\n" .
+                "Pengaju: {$namaGuru}\n" .
+                "Ruangan: {$room->name}\n" .
+                "Lokasi: {$lokasi}\n" .
+                "Tanggal: {$infoTanggal}\n" .
+                "Waktu: {$jamMulai} - {$jamSelesai}\n" .
+                "Status: Diajukan\n\n" .
+                "Silakan login ke RAPI-Sekolah untuk memeriksa dan memproses pengajuan agenda ini.";
 
-            Log::info(
-                'Hasil notifikasi WhatsApp pengajuan agenda ke PIC.',
-                [
-                    'event_id' => $event->id,
-                    'pic_id' => $pic->id,
-                    'phone' => $pic->phone,
-                    'result' => $waSent,
-                ]
-            );
-        } catch (Throwable $e) {
-            $waSent = false;
+            try {
+                $result = $whatsApp->send($pic->phone, $message);
+                if ($result) {
+                    $waSent = true;
+                }
 
-            Log::error(
-                'Terjadi kesalahan saat mengirim notifikasi WhatsApp ke PIC.',
-                [
-                    'event_id' => $event->id,
-                    'pic_id' => $pic->id,
-                    'error' => $e->getMessage(),
-                ]
-            );
+                Log::info(
+                    'Hasil notifikasi WhatsApp pengajuan agenda ke PIC.',
+                    [
+                        'event_id' => $event->id,
+                        'pic_id' => $pic->id,
+                        'phone' => $pic->phone,
+                        'result' => $result,
+                    ]
+                );
+            } catch (Throwable $e) {
+                Log::error(
+                    'Terjadi kesalahan saat mengirim notifikasi WhatsApp ke PIC.',
+                    [
+                        'event_id' => $event->id,
+                        'pic_id' => $pic->id,
+                        'error' => $e->getMessage(),
+                    ]
+                );
+            }
         }
 
         // Tampilkan hasil kepada Guru
@@ -203,7 +216,7 @@ class EventController extends Controller
             ->with('success', 'Pengajuan agenda berhasil dikirim.')
             ->with(
                 'warning',
-                'Agenda tersimpan, tetapi notifikasi WhatsApp ke PIC belum berhasil dikirim. Periksa nomor PIC dan koneksi Fonnte.'
+                'Agenda tersimpan, tetapi notifikasi WhatsApp ke PIC belum berhasil dikirim. Periksa nomor PIC dan koneksi.'
             );
     }
 

@@ -110,6 +110,7 @@
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 18px;
+        margin-bottom: 30px;
     }
 
     .dashboard-quick-card {
@@ -173,8 +174,6 @@
     }
 </style>
 
-
-
 <section>
     <h2 class="dashboard-section-title">Ringkasan Data</h2>
 
@@ -208,6 +207,60 @@
             <small>Pengguna terdaftar</small>
         </div>
 
+    </div>
+</section>
+
+<!-- TABEL RUANGAN KOSONG HARI INI -->
+<section style="margin-bottom: 30px;">
+    <h2 class="dashboard-section-title">Ruangan Kosong Hari Ini</h2>
+    <p class="dashboard-section-description">
+        Daftar ruangan yang tidak memiliki jadwal agenda aktif pada tanggal {{ \Carbon\Carbon::parse($today ?? now())->translatedFormat('d F Y') }}.
+    </p>
+
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+        <div style="padding: 18px 22px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; font-weight: 700; color: #1e293b;">Status Ketersediaan</span>
+            <span style="background: #ecfdf5; color: #059669; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 20px;">
+                Tersedia: {{ isset($emptyRooms) ? $emptyRooms->count() : 0 }} Ruangan
+            </span>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                <thead style="background: #f8fafc; color: #475569; font-size: 12px; text-transform: uppercase;">
+                    <tr>
+                        <th style="padding: 12px 20px;">No</th>
+                        <th style="padding: 12px 20px;">Nama Ruangan</th>
+                        <th style="padding: 12px 20px;">Lokasi</th>
+                        <th style="padding: 12px 20px;">Kapasitas</th>
+                        <th style="padding: 12px 20px;">PIC Ruangan</th>
+                    </tr>
+                </thead>
+                <tbody style="font-size: 13px; color: #334155;">
+                    @forelse ($emptyRooms ?? [] as $room)
+                        <tr style="border-top: 1px solid #f1f5f9;">
+                            <td style="padding: 14px 20px;">{{ $loop->iteration }}</td>
+                            <td style="padding: 14px 20px; font-weight: 600; color: #0f172a;">{{ $room->name }}</td>
+                            <td style="padding: 14px 20px;">{{ $room->location ?? '-' }}</td>
+                            <td style="padding: 14px 20px;">{{ $room->capacity ?? '-' }} orang</td>
+                            <td style="padding: 14px 20px;">
+                                @if(isset($room->pics) && $room->pics->isNotEmpty())
+                                    {{ $room->pics->pluck('name')->implode(', ') }}
+                                @else
+                                    <span style="color: #94a3b8; font-style: italic;">Belum ditentukan</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" style="padding: 24px; text-align: center; color: #94a3b8;">
+                                Semua ruangan sedang terisi / digunakan oleh agenda hari ini.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 </section>
 

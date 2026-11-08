@@ -164,9 +164,12 @@ class EventController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $tanggal = Carbon::parse(
-            $event->event_date
-        )->format('d-m-Y');
+        $tanggalMulai = Carbon::parse($event->event_date)->format('d-m-Y');
+        $tanggalSelesai = $event->end_date ? Carbon::parse($event->end_date)->format('d-m-Y') : null;
+
+        $infoTanggal = $tanggalSelesai && $tanggalSelesai !== $tanggalMulai 
+            ? "{$tanggalMulai} s/d {$tanggalSelesai}" 
+            : $tanggalMulai;
 
         $jamMulai = substr(
             $event->start_time,
@@ -203,7 +206,7 @@ class EventController extends Controller
                 "Pengajuan agenda Anda telah DISETUJUI.\n\n" .
                 "Agenda: {$event->title}\n" .
                 "Ruangan: {$namaRuangan}\n" .
-                "Tanggal: {$tanggal}\n" .
+                "Tanggal: {$infoTanggal}\n" .
                 "Waktu: {$jamMulai} - {$jamSelesai}";
 
             if ($catatan !== '') {
@@ -230,7 +233,7 @@ class EventController extends Controller
                 "Pengajuan agenda Anda DITOLAK.\n\n" .
                 "Agenda: {$event->title}\n" .
                 "Ruangan: {$namaRuangan}\n" .
-                "Tanggal: {$tanggal}\n" .
+                "Tanggal: {$infoTanggal}\n" .
                 "Waktu: {$jamMulai} - {$jamSelesai}\n" .
                 "Catatan PIC: {$catatan}\n\n" .
                 "Silakan cek RAPI-Sekolah untuk informasi lengkap.";

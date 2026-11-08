@@ -4,637 +4,592 @@
 
 @section('page-title', 'Kelola Agenda')
 
-@section('breadcrumb', 'Admin / Kelola Agenda / Tambah')
+@section('breadcrumb', 'Admin / Kelola Agenda')
 
 @section('content')
 
+{{-- CONTENT --}}
+<main class="max-w-7xl mx-auto px-6 py-8">
 
+    {{-- SUCCESS --}}
+    @if (session('success'))
 
-<!DOCTYPE html>
-<html lang="id">
+        <div class="bg-green-50
+                    border border-green-200
+                    text-green-700
+                    px-5 py-4
+                    rounded-xl
+                    mb-6">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <p class="font-semibold">
+                Berhasil
+            </p>
 
-    <title>Data Agenda - RAPI-Sekolah</title>
+            <p class="text-sm mt-1">
+                {{ session('success') }}
+            </p>
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
+        </div>
 
-<body class="bg-slate-50 min-h-screen">
+    @endif
 
-   
+    {{-- ERROR --}}
+    @if ($errors->any())
 
+        <div class="bg-red-50
+                    border border-red-200
+                    text-red-700
+                    px-5 py-4
+                    rounded-xl
+                    mb-6">
 
-    {{-- CONTENT --}}
-    <main class="max-w-7xl mx-auto px-6 py-8">
+            <p class="font-semibold">
+                Terjadi kesalahan
+            </p>
 
+            <ul class="list-disc list-inside text-sm mt-2 space-y-1">
 
-        
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
 
-        {{-- SUCCESS --}}
-        @if (session('success'))
+            </ul>
 
-            <div class="bg-green-50
-                        border border-green-200
-                        text-green-700
-                        px-5 py-4
-                        rounded-xl
-                        mb-6">
+        </div>
 
-                <p class="font-semibold">
-                    Berhasil
-                </p>
+    @endif
 
-                <p class="text-sm mt-1">
-                    {{ session('success') }}
-                </p>
+    {{-- STATISTIK --}}
+    <section class="grid grid-cols-1
+                    sm:grid-cols-2
+                    lg:grid-cols-4
+                    gap-4
+                    mb-6">
 
-            </div>
+        {{-- TOTAL --}}
+        <div class="bg-white
+                    border border-slate-200
+                    border-l-4 border-l-blue-500
+                    rounded-xl
+                    p-5
+                    shadow-sm">
 
-        @endif
+            <p class="text-xs font-bold
+                      uppercase tracking-wider
+                      text-blue-600">
 
+                Total Agenda
 
-        {{-- ERROR --}}
-        @if ($errors->any())
+            </p>
 
-            <div class="bg-red-50
-                        border border-red-200
-                        text-red-700
-                        px-5 py-4
-                        rounded-xl
-                        mb-6">
+            <p class="text-3xl font-bold text-slate-900 mt-2">
+                {{ $events->count() }}
+            </p>
 
-                <p class="font-semibold">
-                    Terjadi kesalahan
-                </p>
+            <p class="text-sm text-slate-500 mt-1">
+                Semua agenda
+            </p>
 
-                <ul class="list-disc list-inside text-sm mt-2 space-y-1">
+        </div>
 
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
+        {{-- DIAJUKAN --}}
+        <div class="bg-white
+                    border border-slate-200
+                    border-l-4 border-l-yellow-500
+                    rounded-xl
+                    p-5
+                    shadow-sm">
 
-                </ul>
+            <p class="text-xs font-bold
+                      uppercase tracking-wider
+                      text-yellow-600">
 
-            </div>
+                Diajukan
 
-        @endif
+            </p>
 
+            <p class="text-3xl font-bold text-slate-900 mt-2">
+                {{ $events->where('status', 'diajukan')->count() }}
+            </p>
 
-        {{-- STATISTIK --}}
-        <section class="grid grid-cols-1
-                        sm:grid-cols-2
-                        lg:grid-cols-4
-                        gap-4
-                        mb-6">
+            <p class="text-sm text-slate-500 mt-1">
+                Menunggu persetujuan
+            </p>
 
-            {{-- TOTAL --}}
-            <div class="bg-white
-                        border border-slate-200
-                        border-l-4 border-l-blue-500
-                        rounded-xl
-                        p-5
-                        shadow-sm">
+        </div>
 
-                <p class="text-xs font-bold
-                          uppercase tracking-wider
-                          text-blue-600">
+        {{-- DISETUJUI --}}
+        <div class="bg-white
+                    border border-slate-200
+                    border-l-4 border-l-green-500
+                    rounded-xl
+                    p-5
+                    shadow-sm">
 
-                    Total Agenda
+            <p class="text-xs font-bold
+                      uppercase tracking-wider
+                      text-green-600">
 
-                </p>
+                Disetujui
 
-                <p class="text-3xl font-bold text-slate-900 mt-2">
-                    {{ $events->count() }}
-                </p>
+            </p>
+
+            <p class="text-3xl font-bold text-slate-900 mt-2">
+                {{ $events->where('status', 'disetujui')->count() }}
+            </p>
+
+            <p class="text-sm text-slate-500 mt-1">
+                Agenda disetujui
+            </p>
+
+        </div>
+
+        {{-- DITOLAK --}}
+        <div class="bg-white
+                    border border-slate-200
+                    border-l-4 border-l-red-500
+                    rounded-xl
+                    p-5
+                    shadow-sm">
+
+            <p class="text-xs font-bold
+                      uppercase tracking-wider
+                      text-red-600">
+
+                Ditolak
+
+            </p>
+
+            <p class="text-3xl font-bold text-slate-900 mt-2">
+                {{ $events->where('status', 'ditolak')->count() }}
+            </p>
+
+            <p class="text-sm text-slate-500 mt-1">
+                Agenda tidak disetujui
+            </p>
+
+        </div>
+
+    </section>
+
+    {{-- TABLE CARD --}}
+    <section class="bg-white
+                    border border-slate-200
+                    rounded-2xl
+                    shadow-sm
+                    overflow-hidden">
+
+        {{-- TABLE HEADER --}}
+        <div class="px-6 py-5
+                    border-b border-slate-100
+                    flex flex-col sm:flex-row
+                    sm:items-center
+                    sm:justify-between
+                    gap-4">
+
+            <div>
+
+                <h3 class="text-lg font-bold text-slate-900">
+                    Daftar Agenda
+                </h3>
 
                 <p class="text-sm text-slate-500 mt-1">
-                    Semua agenda
+                    Total {{ $events->count() }} agenda terdaftar dalam sistem.
                 </p>
 
             </div>
 
+            <a href="{{ route('admin.events.create') }}"
+               class="inline-flex justify-center
+                      bg-blue-600
+                      hover:bg-blue-700
+                      text-white
+                      px-4 py-2.5
+                      rounded-lg
+                      text-sm font-semibold
+                      transition">
 
-            {{-- DIAJUKAN --}}
-            <div class="bg-white
-                        border border-slate-200
-                        border-l-4 border-l-yellow-500
-                        rounded-xl
-                        p-5
-                        shadow-sm">
+                Tambah Agenda
 
-                <p class="text-xs font-bold
-                          uppercase tracking-wider
-                          text-yellow-600">
+            </a>
 
-                    Diajukan
+        </div>
 
-                </p>
+        {{-- TABLE --}}
+        <div class="overflow-x-auto">
 
-                <p class="text-3xl font-bold text-slate-900 mt-2">
-                    {{ $events->where('status', 'diajukan')->count() }}
-                </p>
+            <table class="w-full">
 
-                <p class="text-sm text-slate-500 mt-1">
-                    Menunggu persetujuan
-                </p>
+                <thead class="bg-slate-50
+                              border-b border-slate-200">
 
-            </div>
+                    <tr>
 
+                        <th class="px-5 py-4
+                                   text-left
+                                   text-xs font-bold
+                                   uppercase tracking-wider
+                                   text-slate-500">
 
-            {{-- DISETUJUI --}}
-            <div class="bg-white
-                        border border-slate-200
-                        border-l-4 border-l-green-500
-                        rounded-xl
-                        p-5
-                        shadow-sm">
+                            No
 
-                <p class="text-xs font-bold
-                          uppercase tracking-wider
-                          text-green-600">
+                        </th>
 
-                    Disetujui
+                        <th class="px-5 py-4
+                                   text-left
+                                   text-xs font-bold
+                                   uppercase tracking-wider
+                                   text-slate-500">
 
-                </p>
+                            Agenda
 
-                <p class="text-3xl font-bold text-slate-900 mt-2">
-                    {{ $events->where('status', 'disetujui')->count() }}
-                </p>
+                        </th>
 
-                <p class="text-sm text-slate-500 mt-1">
-                    Agenda disetujui
-                </p>
+                        <th class="px-5 py-4
+                                   text-left
+                                   text-xs font-bold
+                                   uppercase tracking-wider
+                                   text-slate-500">
 
-            </div>
+                            Ruangan
 
+                        </th>
 
-            {{-- DITOLAK --}}
-            <div class="bg-white
-                        border border-slate-200
-                        border-l-4 border-l-red-500
-                        rounded-xl
-                        p-5
-                        shadow-sm">
+                        <th class="px-5 py-4
+                                   text-left
+                                   text-xs font-bold
+                                   uppercase tracking-wider
+                                   text-slate-500">
 
-                <p class="text-xs font-bold
-                          uppercase tracking-wider
-                          text-red-600">
+                            Tanggal
 
-                    Ditolak
+                        </th>
 
-                </p>
+                        <th class="px-5 py-4
+                                   text-left
+                                   text-xs font-bold
+                                   uppercase tracking-wider
+                                   text-slate-500">
 
-                <p class="text-3xl font-bold text-slate-900 mt-2">
-                    {{ $events->where('status', 'ditolak')->count() }}
-                </p>
+                            Waktu
 
-                <p class="text-sm text-slate-500 mt-1">
-                    Agenda tidak disetujui
-                </p>
+                        </th>
 
-            </div>
+                        <th class="px-5 py-4
+                                   text-left
+                                   text-xs font-bold
+                                   uppercase tracking-wider
+                                   text-slate-500">
 
-        </section>
+                            Pengaju
 
+                        </th>
 
-        {{-- TABLE CARD --}}
-        <section class="bg-white
-                        border border-slate-200
-                        rounded-2xl
-                        shadow-sm
-                        overflow-hidden">
+                        <th class="px-5 py-4
+                                   text-left
+                                   text-xs font-bold
+                                   uppercase tracking-wider
+                                   text-slate-500">
 
+                            Status
 
-            {{-- TABLE HEADER --}}
-            <div class="px-6 py-5
-                        border-b border-slate-100
-                        flex flex-col sm:flex-row
-                        sm:items-center
-                        sm:justify-between
-                        gap-4">
+                        </th>
 
-                <div>
+                        <th class="px-5 py-4
+                                   text-center
+                                   text-xs font-bold
+                                   uppercase tracking-wider
+                                   text-slate-500">
 
-                    <h3 class="text-lg font-bold text-slate-900">
-                        Daftar Agenda
-                    </h3>
+                            Aksi
 
-                    <p class="text-sm text-slate-500 mt-1">
-                        Total {{ $events->count() }} agenda terdaftar dalam sistem.
-                    </p>
+                        </th>
 
-                </div>
+                    </tr>
 
+                </thead>
 
-                <a href="{{ route('admin.events.create') }}"
-                   class="inline-flex justify-center
-                          bg-blue-600
-                          hover:bg-blue-700
-                          text-white
-                          px-4 py-2.5
-                          rounded-lg
-                          text-sm font-semibold
-                          transition">
+                <tbody class="divide-y divide-slate-100">
 
-                    Tambah Agenda
+                    @forelse ($events as $event)
 
-                </a>
+                        <tr class="hover:bg-slate-50 transition">
 
-            </div>
+                            {{-- NO --}}
+                            <td class="px-5 py-5">
 
+                                <span class="inline-flex
+                                             items-center
+                                             justify-center
+                                             w-8 h-8
+                                             bg-slate-100
+                                             text-slate-600
+                                             rounded-lg
+                                             text-sm font-semibold">
 
-            {{-- TABLE --}}
-            <div class="overflow-x-auto">
+                                    {{ $loop->iteration }}
 
-                <table class="w-full">
+                                </span>
 
-                    <thead class="bg-slate-50
-                                  border-b border-slate-200">
+                            </li> {{-- Diperbaiki menjadi td penutup --}}
 
-                        <tr>
+                            {{-- AGENDA --}}
+                            <td class="px-5 py-5 min-w-[200px]">
 
-                            <th class="px-5 py-4
-                                       text-left
-                                       text-xs font-bold
-                                       uppercase tracking-wider
-                                       text-slate-500">
+                                <p class="font-semibold text-slate-900">
+                                    {{ $event->title }}
+                                </p>
 
-                                No
+                                @if ($event->description)
 
-                            </th>
-
-                            <th class="px-5 py-4
-                                       text-left
-                                       text-xs font-bold
-                                       uppercase tracking-wider
-                                       text-slate-500">
-
-                                Agenda
-
-                            </th>
-
-                            <th class="px-5 py-4
-                                       text-left
-                                       text-xs font-bold
-                                       uppercase tracking-wider
-                                       text-slate-500">
-
-                                Ruangan
-
-                            </th>
-
-                            <th class="px-5 py-4
-                                       text-left
-                                       text-xs font-bold
-                                       uppercase tracking-wider
-                                       text-slate-500">
-
-                                Tanggal
-
-                            </th>
-
-                            <th class="px-5 py-4
-                                       text-left
-                                       text-xs font-bold
-                                       uppercase tracking-wider
-                                       text-slate-500">
-
-                                Waktu
-
-                            </th>
-
-                            <th class="px-5 py-4
-                                       text-left
-                                       text-xs font-bold
-                                       uppercase tracking-wider
-                                       text-slate-500">
-
-                                Pengaju
-
-                            </th>
-
-                            <th class="px-5 py-4
-                                       text-left
-                                       text-xs font-bold
-                                       uppercase tracking-wider
-                                       text-slate-500">
-
-                                Status
-
-                            </th>
-
-                            <th class="px-5 py-4
-                                       text-center
-                                       text-xs font-bold
-                                       uppercase tracking-wider
-                                       text-slate-500">
-
-                                Aksi
-
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody class="divide-y divide-slate-100">
-
-                        @forelse ($events as $event)
-
-                            <tr class="hover:bg-slate-50 transition">
-
-                                {{-- NO --}}
-                                <td class="px-5 py-5">
-
-                                    <span class="inline-flex
-                                                 items-center
-                                                 justify-center
-                                                 w-8 h-8
-                                                 bg-slate-100
-                                                 text-slate-600
-                                                 rounded-lg
-                                                 text-sm font-semibold">
-
-                                        {{ $loop->iteration }}
-
-                                    </span>
-
-                                </td>
-
-
-                                {{-- AGENDA --}}
-                                <td class="px-5 py-5 min-w-[200px]">
-
-                                    <p class="font-semibold text-slate-900">
-                                        {{ $event->title }}
+                                    <p class="text-xs text-slate-500 mt-1">
+                                        {{ \Illuminate\Support\Str::limit($event->description, 45) }}
                                     </p>
 
-                                    @if ($event->description)
+                                @endif
 
-                                        <p class="text-xs text-slate-500 mt-1">
-                                            {{ \Illuminate\Support\Str::limit($event->description, 45) }}
+                                {{-- DIPINDAHKAN --}}
+                                @if ($event->move_reason)
+
+                                    <div class="mt-2">
+
+                                        <span class="inline-flex
+                                                     bg-violet-50
+                                                     border border-violet-100
+                                                     text-violet-700
+                                                     px-2.5 py-1
+                                                     rounded-full
+                                                     text-xs font-semibold">
+
+                                            Dipindahkan
+
+                                        </span>
+
+                                        <p class="text-xs text-violet-600 mt-1">
+                                            {{ \Illuminate\Support\Str::limit($event->move_reason, 40) }}
                                         </p>
 
-                                    @endif
+                                    </div>
 
+                                @endif
 
-                                    {{-- DIPINDAHKAN --}}
-                                    @if ($event->move_reason)
+                            </td>
 
-                                        <div class="mt-2">
+                            {{-- RUANGAN --}}
+                            <td class="px-5 py-5">
 
-                                            <span class="inline-flex
-                                                         bg-violet-50
-                                                         border border-violet-100
-                                                         text-violet-700
-                                                         px-2.5 py-1
-                                                         rounded-full
-                                                         text-xs font-semibold">
+                                <span class="inline-flex
+                                             bg-blue-50
+                                             border border-blue-100
+                                             text-blue-700
+                                             px-3 py-1
+                                             rounded-full
+                                             text-xs font-semibold">
 
-                                                Dipindahkan
+                                    {{ $event->room->name ?? '-' }}
 
-                                            </span>
+                                </span>
 
-                                            <p class="text-xs text-violet-600 mt-1">
-                                                {{ \Illuminate\Support\Str::limit($event->move_reason, 40) }}
-                                            </p>
+                            </td>
 
-                                        </div>
+                            {{-- TANGGAL (Mendukung Multi-day) --}}
+                            <td class="px-5 py-5 text-sm text-slate-600 whitespace-nowrap">
+                                {{ \Carbon\Carbon::parse($event->event_date)->format('d-m-Y') }}
+                                @if (!empty($event->end_date) && $event->end_date !== $event->event_date)
+                                    <br><span class="text-xs text-slate-400">s/d {{ \Carbon\Carbon::parse($event->end_date)->format('d-m-Y') }}</span>
+                                @endif
+                            </td>
 
-                                    @endif
+                            {{-- WAKTU --}}
+                            <td class="px-5 py-5 whitespace-nowrap">
 
-                                </td>
+                                <p class="text-sm font-semibold text-slate-700">
 
+                                    {{ substr($event->start_time, 0, 5) }}
+                                    -
+                                    {{ substr($event->end_time, 0, 5) }}
 
-                                {{-- RUANGAN --}}
-                                <td class="px-5 py-5">
+                                </p>
+
+                            </td>
+
+                            {{-- PENGAJU --}}
+                            <td class="px-5 py-5 min-w-[150px]">
+
+                                <p class="text-sm font-semibold text-slate-700">
+                                    {{ $event->user->name ?? '-' }}
+                                </p>
+
+                                @if($event->user)
+
+                                    <p class="text-xs text-slate-400 mt-1">
+                                        {{ ucfirst($event->user->role ?? '') }}
+                                    </p>
+
+                                @endif
+
+                            </td>
+
+                            {{-- STATUS --}}
+                            <td class="px-5 py-5">
+
+                                @if ($event->status === 'disetujui')
 
                                     <span class="inline-flex
-                                                 bg-blue-50
-                                                 border border-blue-100
-                                                 text-blue-700
+                                                 bg-green-50
+                                                 border border-green-100
+                                                 text-green-700
                                                  px-3 py-1
                                                  rounded-full
                                                  text-xs font-semibold">
 
-                                        {{ $event->room->name ?? '-' }}
+                                        Disetujui
 
                                     </span>
 
-                                </td>
+                                @elseif ($event->status === 'ditolak')
 
+                                    <span class="inline-flex
+                                                 bg-red-50
+                                                 border border-red-100
+                                                 text-red-700
+                                                 px-3 py-1
+                                                 rounded-full
+                                                 text-xs font-semibold">
 
-                                {{-- TANGGAL --}}
-                                <td class="px-5 py-5 text-sm text-slate-600 whitespace-nowrap">
+                                        Ditolak
 
-                                    {{ \Carbon\Carbon::parse($event->event_date)->format('d-m-Y') }}
+                                    </span>
 
-                                </td>
+                                @else
 
+                                    <span class="inline-flex
+                                                 bg-yellow-50
+                                                 border border-yellow-100
+                                                 text-yellow-700
+                                                 px-3 py-1
+                                                 rounded-full
+                                                 text-xs font-semibold">
 
-                                {{-- WAKTU --}}
-                                <td class="px-5 py-5 whitespace-nowrap">
+                                        Diajukan
 
-                                    <p class="text-sm font-semibold text-slate-700">
+                                    </span>
 
-                                        {{ substr($event->start_time, 0, 5) }}
-                                        -
-                                        {{ substr($event->end_time, 0, 5) }}
+                                @endif
 
-                                    </p>
+                            </td>
 
-                                </td>
+                            {{-- AKSI --}}
+                            <td class="px-5 py-5">
 
+                                <div class="flex
+                                            justify-center
+                                            flex-wrap
+                                            gap-2">
 
-                                {{-- PENGAJU --}}
-                                <td class="px-5 py-5 min-w-[150px]">
-
-                                    <p class="text-sm font-semibold text-slate-700">
-                                        {{ $event->user->name ?? '-' }}
-                                    </p>
-
-                                    @if($event->user)
-
-                                        <p class="text-xs text-slate-400 mt-1">
-                                            {{ ucfirst($event->user->role ?? '') }}
-                                        </p>
-
-                                    @endif
-
-                                </td>
-
-
-                                {{-- STATUS --}}
-                                <td class="px-5 py-5">
-
-                                    @if ($event->status === 'disetujui')
-
-                                        <span class="inline-flex
-                                                     bg-green-50
-                                                     border border-green-100
-                                                     text-green-700
-                                                     px-3 py-1
-                                                     rounded-full
-                                                     text-xs font-semibold">
-
-                                            Disetujui
-
-                                        </span>
-
-                                    @elseif ($event->status === 'ditolak')
-
-                                        <span class="inline-flex
-                                                     bg-red-50
-                                                     border border-red-100
-                                                     text-red-700
-                                                     px-3 py-1
-                                                     rounded-full
-                                                     text-xs font-semibold">
-
-                                            Ditolak
-
-                                        </span>
-
-                                    @else
-
-                                        <span class="inline-flex
-                                                     bg-yellow-50
-                                                     border border-yellow-100
-                                                     text-yellow-700
-                                                     px-3 py-1
-                                                     rounded-full
-                                                     text-xs font-semibold">
-
-                                            Diajukan
-
-                                        </span>
-
-                                    @endif
-
-                                </td>
-
-
-                                {{-- AKSI --}}
-                                <td class="px-5 py-5">
-
-                                    <div class="flex
-                                                justify-center
-                                                flex-wrap
-                                                gap-2">
-
-                                        <a href="{{ route('admin.events.show', $event) }}"
-                                           class="bg-blue-50
-                                                  hover:bg-blue-100
-                                                  border border-blue-100
-                                                  text-blue-700
-                                                  px-3 py-2
-                                                  rounded-lg
-                                                  text-xs font-semibold
-                                                  transition">
-
-                                            Lihat
-
-                                        </a>
-
-
-                                        <a href="{{ route('admin.events.edit', $event) }}"
-                                           class="bg-yellow-50
-                                                  hover:bg-yellow-100
-                                                  border border-yellow-200
-                                                  text-yellow-700
-                                                  px-3 py-2
-                                                  rounded-lg
-                                                  text-xs font-semibold
-                                                  transition">
-
-                                            Edit
-
-                                        </a>
-
-
-                                        <form
-                                            action="{{ route('admin.events.destroy', $event) }}"
-                                            method="POST"
-                                            onsubmit="return confirm('Yakin ingin menghapus agenda {{ $event->title }}?')">
-
-                                            @csrf
-                                            @method('DELETE')
-
-                                            <button
-                                                type="submit"
-                                                class="bg-red-50
-                                                       hover:bg-red-100
-                                                       border border-red-200
-                                                       text-red-700
-                                                       px-3 py-2
-                                                       rounded-lg
-                                                       text-xs font-semibold
-                                                       transition">
-
-                                                Hapus
-
-                                            </button>
-
-                                        </form>
-
-                                    </div>
-
-                                </td>
-
-                            </tr>
-
-
-                        @empty
-
-                            <tr>
-
-                                <td colspan="8"
-                                    class="px-6 py-16 text-center">
-
-                                    <p class="text-lg font-semibold text-slate-700">
-                                        Belum ada agenda
-                                    </p>
-
-                                    <p class="text-sm text-slate-500 mt-1">
-                                        Belum ada agenda atau peminjaman ruangan yang terdaftar.
-                                    </p>
-
-                                    <a href="{{ route('admin.events.create') }}"
-                                       class="inline-flex
-                                              mt-5
-                                              bg-blue-600
-                                              hover:bg-blue-700
-                                              text-white
-                                              px-5 py-2.5
+                                    <a href="{{ route('admin.events.show', $event) }}"
+                                       class="bg-blue-50
+                                              hover:bg-blue-100
+                                              border border-blue-100
+                                              text-blue-700
+                                              px-3 py-2
                                               rounded-lg
-                                              text-sm font-semibold
+                                              text-xs font-semibold
                                               transition">
 
-                                        Tambah Agenda
+                                        Lihat
 
                                     </a>
 
-                                </td>
+                                    <a href="{{ route('admin.events.edit', $event) }}"
+                                       class="bg-yellow-50
+                                              hover:bg-yellow-100
+                                              border border-yellow-200
+                                              text-yellow-700
+                                              px-3 py-2
+                                              rounded-lg
+                                              text-xs font-semibold
+                                              transition">
 
-                            </tr>
+                                        Edit
 
-                        @endforelse
+                                    </a>
 
-                    </tbody>
+                                    <form
+                                        action="{{ route('admin.events.destroy', $event) }}"
+                                        method="POST"
+                                        onsubmit="return confirm('Yakin ingin menghapus agenda {{ $event->title }}?')">
 
-                </table>
+                                        @csrf
+                                        @method('DELETE')
 
-            </div>
+                                        <button
+                                            type="submit"
+                                            class="bg-red-50
+                                                   hover:bg-red-100
+                                                   border border-red-200
+                                                   text-red-700
+                                                   px-3 py-2
+                                                   rounded-lg
+                                                   text-xs font-semibold
+                                                   transition">
 
-        </section>
+                                            Hapus
 
-    </main>
+                                        </button>
 
-</body>
+                                    </form>
 
-</html>
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    @empty
+
+                        <tr>
+
+                            <td colspan="8"
+                                class="px-6 py-16 text-center">
+
+                                <p class="text-lg font-semibold text-slate-700">
+                                    Belum ada agenda
+                                </p>
+
+                                <p class="text-sm text-slate-500 mt-1">
+                                    Belum ada agenda atau peminjaman ruangan yang terdaftar.
+                                </p>
+
+                                <a href="{{ route('admin.events.create') }}"
+                                   class="inline-flex
+                                          mt-5
+                                          bg-blue-600
+                                          hover:bg-blue-700
+                                          text-white
+                                          px-5 py-2.5
+                                          rounded-lg
+                                          text-sm font-semibold
+                                          transition">
+
+                                    Tambah Agenda
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                    @endforelse
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
 @endsection

@@ -11,16 +11,17 @@ use Illuminate\Support\Facades\Storage;
 class ComplaintController extends Controller
 {
     /**
-     * Menampilkan semua pengaduan.
+     * Menampilkan semua pengaduan dengan pagination.
      */
     public function index()
     {
+        // Menggunakan paginate(10) agar pagination muncul di halaman index
         $complaints = Complaint::with([
-                'room.pics', // Diubah dari room.pic menjadi room.pics
+                'room.pics', 
                 'user',
             ])
             ->latest()
-            ->get();
+            ->paginate(10);
 
         return view(
             'admin.complaints.index',
@@ -34,7 +35,7 @@ class ComplaintController extends Controller
      */
     public function create()
     {
-        $rooms = Room::with('pics') // Diubah dari pic menjadi pics
+        $rooms = Room::with('pics')
             ->orderBy('name')
             ->get();
 
@@ -111,7 +112,7 @@ class ComplaintController extends Controller
     public function show(Complaint $complaint)
     {
         $complaint->load([
-            'room.pics', // Diubah dari room.pic menjadi room.pics
+            'room.pics',
             'user',
         ]);
 
@@ -127,12 +128,12 @@ class ComplaintController extends Controller
      */
     public function edit(Complaint $complaint)
     {
-        $rooms = Room::with('pics') // Diubah dari pic menjadi pics
+        $rooms = Room::with('pics')
             ->orderBy('name')
             ->get();
 
         $complaint->load([
-            'room.pics', // Diubah dari room.pic menjadi room.pics
+            'room.pics',
             'user',
         ]);
 
@@ -184,22 +185,10 @@ class ComplaintController extends Controller
          */
 
         if ($request->hasFile('photo')) {
-
-            /*
-             * Upload foto baru terlebih dahulu.
-             *
-             * Dengan cara ini foto lama tidak langsung hilang
-             * sebelum foto baru berhasil disimpan.
-             */
             $newPhotoPath = $request
                 ->file('photo')
                 ->store('complaints', 'public');
 
-
-            /*
-             * Setelah upload baru berhasil,
-             * hapus foto lama.
-             */
             if ($complaint->photo) {
                 Storage::disk('public')
                     ->delete($complaint->photo);
@@ -213,10 +202,6 @@ class ComplaintController extends Controller
         |--------------------------------------------------------------------------
         | UPDATE PENGADUAN
         |--------------------------------------------------------------------------
-        |
-        | pic_note sengaja tidak diubah di sini.
-        | Catatan tersebut tetap menjadi catatan dari PIC.
-        |
         */
 
         $complaint->update([

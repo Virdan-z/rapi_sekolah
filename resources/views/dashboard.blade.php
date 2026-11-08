@@ -547,4 +547,57 @@
 
     </section>
 
+
+    <!-- TABEL RUANGAN KOSONG HARI INI -->
+    <section class="mt-8">
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900">Ruangan Kosong Hari Ini</h3>
+                    <p class="text-xs text-slate-500">Tanggal: {{ \Carbon\Carbon::parse($today ?? now())->translatedFormat('d F Y') }}</p>
+                </div>
+                <span class="text-sm bg-emerald-50 text-emerald-700 font-medium px-3 py-1 rounded-full">
+                    Tersedia: {{ isset($emptyRooms) ? $emptyRooms->count() : 0 }} Ruangan
+                </span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 text-slate-700 text-xs uppercase font-semibold">
+                        <tr>
+                            <th class="px-6 py-3">No</th>
+                            <th class="px-6 py-3">Nama Ruangan</th>
+                            <th class="px-6 py-3">Lokasi</th>
+                            <th class="px-6 py-3">Kapasitas</th>
+                            <th class="px-6 py-3">PIC Ruangan</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm text-slate-600">
+                        @forelse ($emptyRooms ?? [] as $room)
+                            <tr>
+                                <td class="px-6 py-4">{{ $loop->iteration }}</td>
+                                <td class="px-6 py-4 font-medium text-slate-900">{{ $room->name }}</td>
+                                <td class="px-6 py-4">{{ $room->location ?? '-' }}</td>
+                                <td class="px-6 py-4">{{ $room->capacity ?? '-' }} orang</td>
+                                <td class="px-6 py-4">
+                                    @if(isset($room->pics) && $room->pics->isNotEmpty())
+                                        {{ $room->pics->pluck('name')->implode(', ') }}
+                                    @else
+                                        <span class="text-slate-400 italic">Belum ditentukan</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center text-slate-400">
+                                    Semua ruangan sedang terisi / digunakan oleh agenda hari ini.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
 @endsection

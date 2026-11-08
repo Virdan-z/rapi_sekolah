@@ -6,15 +6,29 @@ use App\Models\Room;
 use App\Models\User;
 use App\Models\Event;
 use App\Models\Complaint;
+use Carbon\Carbon; // <-- Tambahan library Carbon untuk tanggal
 
 class DashboardController extends Controller
 {
     public function index()
     {
         // =========================
-        // RUANGAN
+        // RUANGAN & RUANGAN KOSONG
         // =========================
         $totalRooms = Room::count();
+
+        $today = Carbon::today()->toDateString();
+
+        // Cari ID ruangan yang sedang dipakai oleh agenda yang disetujui pada hari ini
+        $bookedRoomIds = Event::where('status', 'disetujui')
+            ->whereDate('event_date', $today)
+            ->pluck('room_id');
+
+        // Ruangan kosong adalah ruangan yang ID-nya tidak ada dalam daftar yang dibooking hari ini
+        $emptyRooms = Room::with('pics')
+            ->whereNotIn('id', $bookedRoomIds)
+            ->orderBy('name')
+            ->get();
 
 
         // =========================
@@ -72,6 +86,8 @@ class DashboardController extends Controller
         // =========================
         return view('dashboard', compact(
             'totalRooms',
+            'emptyRooms', // <-- Tambahan data ruangan kosong
+            'today',      // <-- Tambahan data tanggal hari ini
 
             'totalPics',
             'totalUsers',

@@ -53,7 +53,7 @@ class EventController extends Controller
      */
     public function create()
     {
-        $rooms = Room::with('pics') // Diubah menggunakan 'pics' (bentuk jamak)
+        $rooms = Room::with('pics')
             ->orderBy('name')
             ->get();
 
@@ -79,6 +79,11 @@ class EventController extends Controller
                 'required',
                 'date',
                 'after_or_equal:' . $today,
+            ],
+            'end_date' => [
+                'nullable',
+                'date',
+                'after_or_equal:event_date',
             ],
             'session' => 'required|in:1,2,3',
             'description' => 'nullable|string|max:2000',
@@ -151,6 +156,7 @@ class EventController extends Controller
             'user_id' => auth()->id(),
             'title' => $validated['title'],
             'event_date' => $validated['event_date'],
+            'end_date' => $validated['end_date'] ?? null,
             'start_time' => $validated['start_time'],
             'end_time' => $validated['end_time'],
             'status' => 'diajukan',
@@ -233,6 +239,12 @@ class EventController extends Controller
                 'after_or_equal:' . $today,
             ],
 
+            'end_date' => [
+                'nullable',
+                'date',
+                'after_or_equal:event_date',
+            ],
+
             'session' => 'required|in:1,2,3',
 
             'status' => 'required|in:diajukan,disetujui,ditolak',
@@ -283,12 +295,21 @@ class EventController extends Controller
             10
         );
 
+        $oldEndDate = substr(
+            (string) $event->end_date,
+            0,
+            10
+        );
+
         $isMoved =
             (int) $event->room_id !==
                 (int) $validated['room_id']
 
             || $oldEventDate !==
                 $validated['event_date']
+
+            || $oldEndDate !==
+                ($validated['end_date'] ?? null)
 
             || $oldStartTime !==
                 $newStartTime
@@ -392,6 +413,7 @@ class EventController extends Controller
             'room_id' => $validated['room_id'],
             'title' => $validated['title'],
             'event_date' => $validated['event_date'],
+            'end_date' => $validated['end_date'] ?? null,
             'start_time' => $validated['start_time'],
             'end_time' => $validated['end_time'],
             'status' => $validated['status'],

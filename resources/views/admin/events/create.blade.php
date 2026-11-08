@@ -127,15 +127,15 @@
             </div>
 
 
-            {{-- TANGGAL DAN SESI --}}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {{-- TANGGAL MULAI, TANGGAL SELESAI, DAN SESI --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
 
-                {{-- TANGGAL --}}
+                {{-- TANGGAL MULAI --}}
                 <div>
 
                     <label for="event_date"
                            class="block text-sm font-semibold text-slate-700 mb-2">
-                        Tanggal Agenda
+                        Tanggal Mulai
                     </label>
 
                     <input
@@ -150,6 +150,34 @@
                                focus:ring-blue-500 focus:border-blue-500 transition">
 
                     @error('event_date')
+                        <p class="text-red-600 text-sm mt-2">
+                            {{ $message }}
+                        </p>
+                    @enderror
+
+                </div>
+
+                {{-- TANGGAL SELESAI (MULTI-DAY) --}}
+                <div>
+
+                    <label for="end_date"
+                           class="block text-sm font-semibold text-slate-700 mb-2">
+                        Tanggal Selesai <span class="text-xs font-normal text-slate-400">(Opsional)</span>
+                    </label>
+
+                    <input
+                        id="end_date"
+                        type="date"
+                        name="end_date"
+                        value="{{ old('end_date') }}"
+                        min="{{ now()->toDateString() }}"
+                        class="w-full border border-slate-300 bg-white text-slate-800
+                               rounded-xl px-4 py-3 outline-none focus:ring-2
+                               focus:ring-blue-500 focus:border-blue-500 transition">
+
+                    <p class="text-xs text-slate-400 mt-1">Kosongkan jika hanya 1 hari.</p>
+
+                    @error('end_date')
                         <p class="text-red-600 text-sm mt-2">
                             {{ $message }}
                         </p>
@@ -271,7 +299,7 @@
 
                 <p class="text-sm text-blue-600 mt-1 leading-6">
                     Sistem akan memeriksa apakah ruangan yang dipilih
-                    memiliki agenda lain pada tanggal dan waktu yang sama.
+                    memiliki agenda lain pada rentang tanggal dan waktu yang sama.
                     Jadwal yang bertabrakan akan ditolak oleh sistem.
                 </p>
 
@@ -351,7 +379,7 @@
 </main>
 
 
-{{-- JAVASCRIPT SESI OTOMATIS --}}
+{{-- JAVASCRIPT SESI OTOMATIS & VALIDASI TANGGAL SELESAI --}}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -362,6 +390,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const startInput = document.getElementById('start_time');
     const endInput = document.getElementById('end_time');
+
+    const startDateInput = document.getElementById('event_date');
+    const endDateInput = document.getElementById('end_date');
+
+    // Sinkronisasi minimal tanggal selesai berdasarkan tanggal mulai
+    startDateInput.addEventListener('change', function() {
+        endDateInput.min = startDateInput.value;
+        if (endDateInput.value && endDateInput.value < startDateInput.value) {
+            endDateInput.value = startDateInput.value;
+        }
+    });
 
     const schedules = {
         '1': {
