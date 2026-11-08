@@ -17,12 +17,13 @@ class EventController extends Controller
     {
         $userId = auth()->id();
 
+        // Diubah menggunakan whereHas ke relasi pics (Many-to-Many)
         $events = Event::with([
-                'room',
+                'room.pics',
                 'user',
             ])
-            ->whereHas('room', function ($query) use ($userId) {
-                $query->where('pic_id', $userId);
+            ->whereHas('room.pics', function ($query) use ($userId) {
+                $query->where('users.id', $userId);
             })
             ->latest()
             ->get();
@@ -40,7 +41,7 @@ class EventController extends Controller
     public function show(Event $event)
     {
         $event->load([
-            'room.pic',
+            'room.pics',
             'user',
         ]);
 
@@ -59,7 +60,7 @@ class EventController extends Controller
     public function edit(Event $event)
     {
         $event->load([
-            'room.pic',
+            'room.pics',
             'user',
         ]);
 
@@ -87,7 +88,7 @@ class EventController extends Controller
         */
 
         $event->load([
-            'room',
+            'room.pics',
             'user',
         ]);
 
@@ -152,7 +153,7 @@ class EventController extends Controller
         */
 
         $event->load([
-            'room.pic',
+            'room.pics',
             'user',
         ]);
 
@@ -302,11 +303,12 @@ class EventController extends Controller
     private function authorizePicRoom(
         Event $event
     ): void {
-        if (
-            !$event->room ||
-            (int) $event->room->pic_id !==
-            (int) auth()->id()
-        ) {
+        $userId = auth()->id();
+
+        // Diubah mengecek apakah user ID yang login ada di dalam relasi pics ruangan tersebut
+        $isPicForRoom = $event->room && $event->room->pics->contains($userId);
+
+        if (!$isPicForRoom) {
             abort(
                 403,
                 'Anda tidak memiliki akses ke agenda ini.'

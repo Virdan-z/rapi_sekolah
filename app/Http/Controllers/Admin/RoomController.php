@@ -15,7 +15,7 @@ class RoomController extends Controller
      */
     public function index()
     {
-        $rooms = Room::with('pic')
+        $rooms = Room::with('pics')
             ->latest()
             ->get();
 
@@ -60,8 +60,11 @@ class RoomController extends Controller
 
             'capacity' => 'required|integer|min:1',
 
-            'pic_id' => [
-                'nullable',
+            'pic_ids' => 'nullable|array',
+
+            'pic_ids.*' => [
+                'required',
+                'distinct',
                 Rule::exists('users', 'id')
                     ->where(function ($query) {
                         $query->where('role', 'pic');
@@ -71,21 +74,26 @@ class RoomController extends Controller
             'description' => 'nullable|string|max:2000',
         ]);
 
-
         /*
         |--------------------------------------------------------------------------
         | SIMPAN RUANGAN
         |--------------------------------------------------------------------------
         */
 
-        Room::create([
+        $room = Room::create([
             'name' => $validated['name'],
             'location' => $validated['location'],
             'capacity' => $validated['capacity'],
-            'pic_id' => $validated['pic_id'] ?? null,
             'description' => $validated['description'] ?? null,
         ]);
 
+        /*
+        |--------------------------------------------------------------------------
+        | SIMPAN PIC KE TABEL PIVOT
+        |--------------------------------------------------------------------------
+        */
+
+        $room->pics()->sync($validated['pic_ids'] ?? []);
 
         return redirect()
             ->route('admin.rooms.index')
@@ -101,7 +109,7 @@ class RoomController extends Controller
      */
     public function show(Room $room)
     {
-        $room->load('pic');
+        $room->load('pics');
 
         return view(
             'admin.rooms.show',
@@ -119,7 +127,7 @@ class RoomController extends Controller
             ->orderBy('name')
             ->get();
 
-        $room->load('pic');
+        $room->load('pics');
 
         return view(
             'admin.rooms.edit',
@@ -151,8 +159,11 @@ class RoomController extends Controller
 
             'capacity' => 'required|integer|min:1',
 
-            'pic_id' => [
-                'nullable',
+            'pic_ids' => 'nullable|array',
+
+            'pic_ids.*' => [
+                'required',
+                'distinct',
                 Rule::exists('users', 'id')
                     ->where(function ($query) {
                         $query->where('role', 'pic');
@@ -161,7 +172,6 @@ class RoomController extends Controller
 
             'description' => 'nullable|string|max:2000',
         ]);
-
 
         /*
         |--------------------------------------------------------------------------
@@ -173,10 +183,16 @@ class RoomController extends Controller
             'name' => $validated['name'],
             'location' => $validated['location'],
             'capacity' => $validated['capacity'],
-            'pic_id' => $validated['pic_id'] ?? null,
             'description' => $validated['description'] ?? null,
         ]);
 
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE PIC
+        |--------------------------------------------------------------------------
+        */
+
+        $room->pics()->sync($validated['pic_ids'] ?? []);
 
         return redirect()
             ->route('admin.rooms.index')

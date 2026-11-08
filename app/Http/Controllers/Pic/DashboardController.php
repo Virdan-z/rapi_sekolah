@@ -13,7 +13,10 @@ class DashboardController extends Controller
     {
         $picId = auth()->id();
 
-        $rooms = Room::where('pic_id', $picId)->get();
+        // Diubah dari Room::where('pic_id', $picId) menjadi relasi many-to-many pics
+        $rooms = Room::whereHas('pics', function ($query) use ($picId) {
+            $query->where('users.id', $picId);
+        })->get();
 
         $roomIds = $rooms->pluck('id');
 

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -12,11 +11,6 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -25,37 +19,37 @@ class User extends Authenticatable
         'phone',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
 
     /**
-     * Ruangan yang menjadi tanggung jawab user sebagai PIC.
+     * Relasi user dengan banyak ruangan.
+     * Satu PIC dapat bertanggung jawab atas beberapa ruangan.
      */
     public function rooms()
     {
-        return $this->hasMany(Room::class, 'pic_id');
+        return $this->belongsToMany(Room::class, 'room_pic')
+            ->withTimestamps();
     }
+
+    /**
+     * Relasi user dengan event.
+     */
     public function events()
     {
         return $this->hasMany(Event::class);
     }
+
+    /**
+     * Relasi user dengan pengaduan.
+     */
     public function complaints()
     {
         return $this->hasMany(Complaint::class);

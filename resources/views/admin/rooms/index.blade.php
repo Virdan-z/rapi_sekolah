@@ -8,7 +8,6 @@
 
 @section('content')
 
-
 <!DOCTYPE html>
 <html lang="id">
 
@@ -86,7 +85,11 @@
                             </td>
 
                             <td class="px-6 py-4">
-                                {{ $room->pic?->name ?? 'Belum ditentukan' }}
+                                @if($room->pics->isNotEmpty())
+                                    {{ $room->pics->pluck('name')->implode(', ') }}
+                                @else
+                                    Belum ditentukan
+                                @endif
                             </td>
 
                             <td class="px-6 py-4">

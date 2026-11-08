@@ -3,26 +3,28 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
 
 class Room extends Model
 {
     protected $fillable = [
-        'pic_id',
         'name',
         'location',
         'capacity',
         'description',
     ];
 
-    public function pic()
+    // Diubah menjadi pics() agar sesuai dengan RoomController baris 20
+    public function pics()
     {
-        return $this->belongsTo(User::class, 'pic_id');
+        return $this->belongsToMany(User::class, 'room_pic')
+            ->withTimestamps();
     }
+
     public function events()
     {
-    return $this->hasMany(Event::class);
+        return $this->hasMany(Event::class);
     }
+
     public function complaints()
     {
         return $this->hasMany(Complaint::class);

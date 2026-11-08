@@ -9,7 +9,7 @@ use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\ComplaintController;
-use App\Http\Controllers\Admin\ComplaintReportController;
+use App\Http\Controllers\Admin\ReportController; // <-- Tambahan Controller Laporan
 
 // PIC
 use App\Http\Controllers\Pic\DashboardController as PicDashboardController;
@@ -35,10 +35,8 @@ use App\Http\Controllers\PublicAgendaController;
 |--------------------------------------------------------------------------
 */
 
-// Saat membuka halaman utama, langsung menuju agenda publik.
-Route::get('/', function () {
-    return redirect()->route('public.agenda');
-});
+// Langsung memuat index PublicAgendaController pada root URL (tanpa redirect)
+Route::get('/', [PublicAgendaController::class, 'index']);
 
 
 /*
@@ -110,6 +108,12 @@ Route::middleware(['auth'])->group(function () {
                 'complaints',
                 ComplaintController::class
             );
+
+            // TAMBAHAN ROUTE LAPORAN ADMIN
+            Route::get(
+                'reports',
+                [ReportController::class, 'index']
+            )->name('reports.index');
         });
 
 

@@ -104,9 +104,14 @@
                             value="{{ $room->id }}"
                             {{ old('room_id') == $room->id ? 'selected' : '' }}>
 
-                            {{ $room->name }}
-                            - {{ $room->location }}
+                            {{ $room->name }} 
+                            - {{ $room->location }} 
                             ({{ $room->capacity }} orang)
+                            @if($room->pics->isNotEmpty())
+                                [PIC: {{ $room->pics->pluck('name')->implode(', ') }}]
+                            @else
+                                [Tanpa PIC]
+                            @endif
 
                         </option>
                     @endforeach

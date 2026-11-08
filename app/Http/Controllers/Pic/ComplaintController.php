@@ -16,9 +16,12 @@ class ComplaintController extends Controller
     {
         $userId = auth()->id();
 
-        $complaints = Complaint::with(['room', 'user'])
-            ->whereHas('room', function ($query) use ($userId) {
-                $query->where('pic_id', $userId);
+        $complaints = Complaint::with([
+            'room.pics',
+            'user',
+        ])
+            ->whereHas('room.pics', function ($query) use ($userId) {
+                $query->where('users.id', $userId);
             })
             ->latest()
             ->get();
@@ -29,14 +32,13 @@ class ComplaintController extends Controller
         );
     }
 
-
     /**
      * Menampilkan detail pengaduan.
      */
     public function show(Complaint $complaint)
     {
         $complaint->load([
-            'room.pic',
+            'room.pics',
             'user',
         ]);
 
@@ -48,14 +50,13 @@ class ComplaintController extends Controller
         );
     }
 
-
     /**
      * Menampilkan form penanganan pengaduan.
      */
     public function edit(Complaint $complaint)
     {
         $complaint->load([
-            'room.pic',
+            'room.pics',
             'user',
         ]);
 
@@ -67,7 +68,6 @@ class ComplaintController extends Controller
         );
     }
 
-
     /**
      * Memperbarui status dan catatan penanganan.
      */
@@ -75,10 +75,9 @@ class ComplaintController extends Controller
         Request $request,
         Complaint $complaint
     ) {
-        $complaint->load('room');
+        $complaint->load('room.pics');
 
         $this->authorizePicRoom($complaint);
-
 
         /*
         |--------------------------------------------------------------------------
@@ -91,7 +90,6 @@ class ComplaintController extends Controller
             'pic_note' => 'nullable|string|max:2000',
         ]);
 
-
         /*
         |--------------------------------------------------------------------------
         | UPDATE PENGADUAN
@@ -100,9 +98,8 @@ class ComplaintController extends Controller
 
         $complaint->update([
             'status' => $validated['status'],
-            'pic_note' => $validated['pic_note'] ?? null,
+            'pic_note' => $validated['pic_note'] ?? $complaint->pic_note,
         ]);
-
 
         /*
         |--------------------------------------------------------------------------
@@ -121,12 +118,10 @@ class ComplaintController extends Controller
                 'Pengaduan berhasil diselesaikan.',
         };
 
-
         return redirect()
             ->route('pic.complaints.show', $complaint)
             ->with('success', $message);
     }
-
 
     /**
      * Memastikan PIC hanya dapat mengakses pengaduan
@@ -135,10 +130,14 @@ class ComplaintController extends Controller
     private function authorizePicRoom(
         Complaint $complaint
     ): void {
-        if (
-            !$complaint->room ||
-            (int) $complaint->room->pic_id !== (int) auth()->id()
-        ) {
+        $userId = auth()->id();
+
+        $hasAccess = $complaint->room
+            && $complaint->room->pics()
+                ->where('users.id', $userId)
+                ->exists();
+
+        if (!$hasAccess) {
             abort(
                 403,
                 'Anda tidak memiliki akses ke pengaduan ini.'

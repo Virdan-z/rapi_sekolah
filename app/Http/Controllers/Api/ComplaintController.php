@@ -17,7 +17,7 @@ class ComplaintController extends Controller
         $user = $request->user();
 
         $query = Complaint::with([
-            'room.pic',
+            'room.pics',
             'user',
         ]);
 
@@ -28,9 +28,9 @@ class ComplaintController extends Controller
 
         } elseif ($user->role === 'pic') {
 
-            // PIC hanya melihat pengaduan dari ruangannya.
-            $query->whereHas('room', function ($query) use ($user) {
-                $query->where('pic_id', $user->id);
+            // PIC melihat pengaduan dari semua ruangan tugasnya.
+            $query->whereHas('room.pics', function ($query) use ($user) {
+                $query->where('users.id', $user->id);
             });
 
         } elseif ($user->role !== 'admin') {
@@ -63,7 +63,7 @@ class ComplaintController extends Controller
         $user = $request->user();
 
         $complaint->load([
-            'room.pic',
+            'room.pics',
             'user',
         ]);
 
@@ -78,13 +78,10 @@ class ComplaintController extends Controller
             ], 403);
         }
 
-        // PIC hanya boleh melihat pengaduan dari ruangannya.
+        // PIC hanya boleh melihat pengaduan dari ruangan tugasnya.
         if (
             $user->role === 'pic' &&
-            (
-                !$complaint->room ||
-                (int) $complaint->room->pic_id !== (int) $user->id
-            )
+            !$this->isPicAssigned($complaint, $user->id)
         ) {
             return response()->json([
                 'success' => false,
@@ -92,12 +89,7 @@ class ComplaintController extends Controller
             ], 403);
         }
 
-        if (
-            !in_array(
-                $user->role,
-                ['admin', 'guru', 'pic']
-            )
-        ) {
+        if (!in_array($user->role, ['admin', 'guru', 'pic'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Akses ditolak.',
@@ -155,7 +147,7 @@ class ComplaintController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | SIMPAN
+        | SIMPAN PENGADUAN
         |--------------------------------------------------------------------------
         */
 
@@ -170,7 +162,7 @@ class ComplaintController extends Controller
         ]);
 
         $complaint->load([
-            'room.pic',
+            'room.pics',
             'user',
         ]);
 
@@ -226,7 +218,7 @@ class ComplaintController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | JIKA ADA FOTO BARU
+        | UPLOAD FOTO BARU
         |--------------------------------------------------------------------------
         */
 
@@ -246,12 +238,8 @@ class ComplaintController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | UPDATE
+        | UPDATE PENGADUAN
         |--------------------------------------------------------------------------
-        |
-        | pic_note tidak diubah oleh Admin.
-        | Catatan PIC tetap dipertahankan.
-        |
         */
 
         $complaint->update([
@@ -263,7 +251,7 @@ class ComplaintController extends Controller
         ]);
 
         $complaint->load([
-            'room.pic',
+            'room.pics',
             'user',
         ]);
 
@@ -331,18 +319,13 @@ class ComplaintController extends Controller
             ], 403);
         }
 
-        $complaint->load('room');
-
         /*
         |--------------------------------------------------------------------------
-        | CEK PIC RUANGAN
+        | CEK PENUGASAN PIC
         |--------------------------------------------------------------------------
         */
 
-        if (
-            !$complaint->room ||
-            (int) $complaint->room->pic_id !== (int) $user->id
-        ) {
+        if (!$this->isPicAssigned($complaint, $user->id)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda bukan PIC dari ruangan pengaduan ini.',
@@ -376,11 +359,11 @@ class ComplaintController extends Controller
 
         $complaint->update([
             'status' => $validated['status'],
-            'pic_note' => $validated['pic_note'] ?? null,
+            'pic_note' => $validated['pic_note'] ?? $complaint->pic_note,
         ]);
 
         $complaint->load([
-            'room.pic',
+            'room.pics',
             'user',
         ]);
 
@@ -400,5 +383,20 @@ class ComplaintController extends Controller
             'message' => $message,
             'data' => $complaint,
         ], 200);
+    }
+
+
+    /**
+     * Memeriksa apakah PIC ditugaskan pada ruangan pengaduan.
+     */
+    private function isPicAssigned(
+        Complaint $complaint,
+        int $userId
+    ): bool {
+        return $complaint->room()
+            ->whereHas('pics', function ($query) use ($userId) {
+                $query->where('users.id', $userId);
+            })
+            ->exists();
     }
 }

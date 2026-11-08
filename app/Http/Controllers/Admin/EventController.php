@@ -36,7 +36,7 @@ class EventController extends Controller
     public function index()
     {
         $events = Event::with([
-            'room.pic',
+            'room.pics',
             'user'
         ])
             ->latest()
@@ -53,7 +53,7 @@ class EventController extends Controller
      */
     public function create()
     {
-        $rooms = Room::with('pic')
+        $rooms = Room::with('pics') // Diubah menggunakan 'pics' (bentuk jamak)
             ->orderBy('name')
             ->get();
 
@@ -173,7 +173,7 @@ class EventController extends Controller
     public function show(Event $event)
     {
         $event->load([
-            'room.pic',
+            'room.pics',
             'user',
         ]);
 
@@ -188,12 +188,12 @@ class EventController extends Controller
      */
     public function edit(Event $event)
     {
-        $rooms = Room::with('pic')
+        $rooms = Room::with('pics')
             ->orderBy('name')
             ->get();
 
         $event->load([
-            'room.pic',
+            'room.pics',
             'user',
         ]);
 

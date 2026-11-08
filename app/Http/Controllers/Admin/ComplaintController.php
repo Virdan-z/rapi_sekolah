@@ -16,7 +16,7 @@ class ComplaintController extends Controller
     public function index()
     {
         $complaints = Complaint::with([
-                'room.pic',
+                'room.pics', // Diubah dari room.pic menjadi room.pics
                 'user',
             ])
             ->latest()
@@ -34,7 +34,7 @@ class ComplaintController extends Controller
      */
     public function create()
     {
-        $rooms = Room::with('pic')
+        $rooms = Room::with('pics') // Diubah dari pic menjadi pics
             ->orderBy('name')
             ->get();
 
@@ -111,7 +111,7 @@ class ComplaintController extends Controller
     public function show(Complaint $complaint)
     {
         $complaint->load([
-            'room.pic',
+            'room.pics', // Diubah dari room.pic menjadi room.pics
             'user',
         ]);
 
@@ -127,12 +127,12 @@ class ComplaintController extends Controller
      */
     public function edit(Complaint $complaint)
     {
-        $rooms = Room::with('pic')
+        $rooms = Room::with('pics') // Diubah dari pic menjadi pics
             ->orderBy('name')
             ->get();
 
         $complaint->load([
-            'room.pic',
+            'room.pics', // Diubah dari room.pic menjadi room.pics
             'user',
         ]);
 
@@ -178,10 +178,10 @@ class ComplaintController extends Controller
 
 
         /*
-        |--------------------------------------------------------------------------
-        | GANTI FOTO
-        |--------------------------------------------------------------------------
-        */
+         |--------------------------------------------------------------------------
+         | GANTI FOTO
+         |--------------------------------------------------------------------------
+         */
 
         if ($request->hasFile('photo')) {
 

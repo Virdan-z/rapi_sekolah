@@ -492,6 +492,14 @@
                         </a>
                     @endif
 
+                    {{-- MENU LAPORAN ADMIN (Langsung Ditampilkan Tanpa Route::has) --}}
+                    <a
+                        href="{{ route('admin.reports.index') }}"
+                        class="sidebar-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}"
+                    >
+                        Laporan
+                    </a>
+
                 </div>
             @endif
 
